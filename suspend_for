@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# Auto suspend and wake-up script
+
+# Puts the computer on standby and automatically wakes it up after specified period
+
+# Courtesy of http://ubuntuforums.org/member.php?u=130449
+# from thread http://ubuntuforums.org/showthread.php?t=938533&page=2
+# Edited by Romke van der Meulen <redge.online@gmail.com>
+
+# example:
+# suspend_for 1
+# suspend_for 1 hour
+# suspend_for 2 hours
+# suspend_for 1 minute
+# suspend_for 60 minutes
+
+# ------------------------------------------------------
+# Argument check
+MINARGS=1
+MAXARGS=4
+E_BADARGS=65
+
+if [ $# -lt "$MINARGS" ] || [ $# -gt "$MAXARGS" ]; then
+  echo "Usage: `basename $0` [[number] hours/h] [[number] minutes/m]"
+  echo "E.G.: `basename $0` 2 hours"
+  echo "E.G.: `basename $0` 30 minutes"
+  echo "E.G.: `basename $0` 2 hours 30 minutes"
+  echo "E.G.: `basename $0` 2 h 30 m"
+  exit $E_BADARGS
+fi
+# ------------------------------------------------------
+
+# Get root
+sudo killall rtcwake
+
+# Determine sleep interval
+hours=0
+minutes=0
+multiply=0
+total=0
+
+# Check for first argument set, default hours
+multiply=3600
+if [ $# -gt 1 ]; then
+	if [ "$2" = "minutes" ] || [ "$2" = "minute" ] || [ "$2" = "m" ]; then
+		multiply=60
+		minutes=$1
+	else
+		multiply=3600	
+		hours=$1
+	fi
+fi
+
+# Add time from first argument set
+total=`expr $1 \* $multiply`
+
+echo "(first arg set $total seconds)"
+
+# Check for second argument set, default minutes
+multiply=0
+if [ $# -gt 2 ]; then
+	if [ "$4" = "hours" ] || [ "$4" = "hour" ] || [ "$4" = "h" ]; then
+		multiply=3600
+		hours=`expr $3 + $hours`
+	else
+		multiply=60	
+		minutes=`expr $3 + $minutes`
+	fi
+
+	# Add time from second argument set
+	total=`echo "$total + ($3 * $multiply)" | bc`
+fi
+
+# Let user know what we're going to do
+echo "Going to suspend for $hours hours $minutes minutes ($total seconds)"
+echo "To cancel, press Ctrl+c within the next 5 seconds."
+sleep 5
+
+# Fix error
+total=$(($total+7200))
+
+# Set wake up time,
+sudo rtcwake -s $total -m on &
+
+# give rtcwake some time to make its stuff
+sleep 2
+
+# then suspend
+sudo pm-suspend
+
+# Wake up with monitor disabled
+xset dpms force off
+
+# Any commands you want to launch after resume
+# can be placed here
+# Remember: sudo may have expired by now
+clear
+
+echo "Good morning!"
+
+/home/romke/bin/dow.actions.sh &

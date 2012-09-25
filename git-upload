@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# A script to create a bare clone of a GIT repo and upload it to a server for
+# archiving or public distribution.
+# 
+# Author: Romke van der Meulen <www.redgeonline.net>
+# License: CreativeCommons Attribution Non-Commercial 3.0
+
+# Check arguments
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+	echo "Usage: git-upload (SourceDir) [TargetName]"
+	exit 1
+fi
+
+# Define remote directory
+HOST=redgeonl@redgeonline.net
+REMOTEDIR=www/repo
+
+# If no second argument given, the name of the uploaded repo is
+# equal to the repo being copied
+if [ $# -gt 1 ]; then
+	NAME=$2
+else
+	NAME=$1
+fi
+
+# If the temp files already exist, remove them
+rm -rf $NAME.tar.gz $NAME.git
+
+# Begin procedure
+
+	# Create the bare clone
+	echo "Creating bare clone"					&& \
+	echo -n "  "							&& \
+	git clone --bare $1 $NAME.git					&& \
+	# Tar and zip
+	echo "Zipping"							&& \
+	tar -czf $NAME.git.tar.gz $NAME.git				&& \
+	# Upload to target dir
+	echo "Uploading"						&& \
+	scp $NAME.git.tar.gz $HOST:$REMOTEDIR/				&& \
+	# Unzip at target dir
+	echo "Unzipping"						&& \
+	ssh $HOST tar -xzf $REMOTEDIR/$NAME.git.tar.gz -C $REMOTEDIR/	&& \
+	# Remove generated files
+	echo "Cleaning up"						&& \
+	ssh $HOST rm -f $REMOTEDIR/$NAME.git.tar.gz 			&& \
+	rm -rf $NAME.git.tar.gz $NAME.git				&& \
+	# Done
+	echo "Succesfull"					&& exit 0
+
+# Error encountered
+echo "Unsuccesfull" && exit 2
+	

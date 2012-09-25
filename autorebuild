@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Quick way of rebuilding the makefiles of a project configured with automake
+
+touch ChangeLog
+autoreconf -i
+automake --add-missing
+./configure
+

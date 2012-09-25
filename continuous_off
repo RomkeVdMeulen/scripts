@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Blacks the screen in case your monitor won't stay off
+# Runs this in a terminal, turn it off by pressing ctrl+c
+# This is a somewhat dangerous script if you don't know what you're doing
+
+if [ $# -gt 0 ] && [ "x$1" == "xlock" ]; then
+	gnome-screensaver-command --lock
+fi
+
+while [ 1 == 1 ]; do
+	xset dpms force off
+#	sleep 1;
+done

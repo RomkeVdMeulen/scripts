@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Script for automatically scanning and processing documents
+# Usage: processdoc filename [crop top=5] [height=300] [crop left=30] [width=250] [lang=nld]
+
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 filename [crop top=5] [height=300] [crop left=30] [width=250] [lang=nld]"
+  exit
+fi
+FILENAME=$1
+
+T=5
+if [ $# -gt 1 ]; then
+  T=$2
+fi
+Y=300
+if [ $# -gt 2 ]; then
+  T=$3
+fi
+L=30
+if [ $# -gt 3 ]; then
+  T=$4
+fi
+X=250
+if [ $# -gt 4 ]; then
+  T=$5
+fi
+
+LANG="nld"
+if [ $# -gt 5 ]; then
+  LANG=$6
+fi
+
+echo "Scanning document within top $T left $L height $Y width $X..."
+
+# Scan preview
+#scanimage --device 'pixma:04A91734_5392BB' --format=pnm --mode 'Gray' --resolution 150 -l $L -t $T -x $X -y $Y > preview.pnm
+scanimage --device 'pixma:04A91734_5392BB' --format=pnm --mode 'Gray' --resolution 150 > preview.pnm
+echo "Scan complete, showing preview for approval"
+echo "If unsatisfied, cancel within 8 seconds by pressing ctrl+c in terminal"
+eog preview.pnm &
+echo
+sleep 8
+echo "Too late: continuing"
+echo
+
+# Preview accepted: process for saving
+convert -fuzz 40% -trim +repage -sharpen 1 preview.pnm $FILENAME.jpg
+echo "Primary scan complete, autocropping..."
+autocrop $FILENAME.jpg $FILENAME.cropped.jpg
+echo "Autocrop created"
+
+rm preview.pnm
+# Exit here to stop OCR
+exit
+
+echo ", proceeding with high level scan"
+
+# Scan high resolution for OCR
+#scanimage --device 'pixma:04A91734_5392BB' --format=pnm --mode 'Gray' --resolution 600 -l $L -t $T -x $X -y $Y > ocr.pnm
+scanimage --device 'pixma:04A91734_5392BB' --format=pnm --mode 'Gray' --resolution 600 > ocr.pnm
+echo "Processing high level scan"
+echo -n "  "
+convert -fuzz 40% -trim +repage -sharpen 1 ocr.pnm ocr_trimmed.pnm
+unpaper ocr_trimmed.pnm ocr_unpapered.pnm
+convert ocr_unpapered.pnm ocr.tif
+echo "Running OCR, language $LANG"
+echo -n "  "
+tesseract ocr.tif $FILENAME -l $LANG
+
+echo "Done: removing temp images"
+rm ocr.pnm ocr_trimmed.pnm ocr_unpapered.pnm ocr.tif
+

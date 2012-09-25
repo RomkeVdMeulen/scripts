@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Script to automatically update a drupal installation (without doing backups, which you shouldn't)
+
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 destination_folder version"
+  exit
+fi
+
+DRUPAL_FTP=http://ftp.drupal.org/files/projects/
+DRUPAL="drupal-$2"
+DESTINATION=$1
+
+echo "Retrieving $DRUPAL_FTP$DRUPAL.tar.gz ..."
+wget $DRUPAL_FTP$DRUPAL.tar.gz
+
+echo "Installing..."
+tar xzf $DRUPAL.tar.gz
+cp -R $DRUPAL/* $DESTINATION/
+
+echo "Cleanup"
+rm -f $DRUPAL.tar.gz
+rm -rf $DRUPAL
+
+echo "Done. Don't forget to run update.php"

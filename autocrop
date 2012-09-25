@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#
+# Crops an image (usually a scan) untill either no black remains
+# or the next autocrop would make the image too small
+#
+# Usage: autocrop [infile] [outfile]
+#
+
+P=100
+while [ `convert -fuzz $P% -trim +repage $1 $2 2>&1| wc -w` -gt 0 ]; do
+  P=$(( $P - 1 ))
+done
+
+convert -fuzz $P% -trim +repage $1 $2 2> /dev/null 1> /dev/null
+
+while [ $(stat -c%s "$2") -lt 1000 ]; do
+  P=$(( $P + 1 ))
+  convert -fuzz $P% -trim +repage $1 $2 2> /dev/null 1> /dev/null
+done
+
+echo "Best crop at $P%"

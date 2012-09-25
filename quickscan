@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Script for automatically scanning and processing documents, light version of processdoc
+# Usage: quickscan filename
+
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 filename"
+  exit
+fi
+FILENAME=$1
+
+echo "Scanning document"
+scanimage --device 'pixma:04A91734_5392BB' --format=pnm --mode 'Gray' --resolution 150 > $FILENAME.pnm
+convert -fuzz 40% -trim +repage -sharpen 1 $FILENAME.pnm $FILENAME.jpg
+rm $FILENAME.pnm
+
+#echo "Primary scan complete, autocropping..."
+#autocrop $FILENAME.jpg $FILENAME.cropped.jpg
+
+echo "Done"
+
+SELF_PATH=$(cd -P -- "$(dirname -- "$0")" && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
+while [ -h $SELF_PATH ]; do
+    DIR=$(dirname -- "$SELF_PATH")
+    SYM=$(readlink $SELF_PATH)
+    SELF_PATH=$(cd $DIR && cd $(dirname -- "$SYM") && pwd)/$(basename -- "$SYM")
+done
+path=`dirname $SELF_PATH`
+
+mplayer $path/notify.ogg > /dev/null

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#
+# Simple script for backing up files to a server
+#
+
+HOST="username@host.com:home-relative/path/"
+
+if [ $# -lt 1 ] || [ $# -gt 4 ]; then
+	echo "Usage: backuptoserver 'local' 'remote' [type=rsync] [server=$HOST]"
+	exit
+fi
+
+LOCAL=$1
+REMOTE=$2
+
+TYPE="rsync"
+if [ $# -gt 2 ]; then
+	TYPE="$3"
+fi
+
+if [ $# -gt 3 ]; then
+	HOST="$4"
+fi
+
+case $TYPE in
+"7zip"|"7ZIP")
+	echo "Tarring..." && echo
+	tar cf $REMOTE.tar $LOCAL
+
+	echo "7-zipping..." && echo
+	p7zip $REMOTE.tar
+
+	echo "Secure-copying to $HOST/$REMOTE.tar.z7 ..."
+	scp $REMOTE.tar.7z $HOST/
+
+	sleep 5
+	echo "Removing local zip"
+	rm $REMOTE.tar.7z
+;;
+"rsync"|"RSYNC")
+	echo "Synching with $HOST/$REMOTE..."
+	sudo rsync -avz $LOCAL $HOST/$REMOTE
+;;
+*)
+	echo "Unrecognized backup type $TYPE"
+;;
+esac

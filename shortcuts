@@ -1,0 +1,11 @@
+#! /bin/bash
+
+# Prints a little Bash cheatsheet
+
+echo
+echo "Forward/back one word: Esc+b/f"
+echo "Delete prev/next word: Esc+Backspace/Del"
+echo "Delete all on line following/previous: C+k/u"
+echo "History: history. Redo command starting with x: !x"
+echo "Copy last command containing x to prompt: Esc+p, x"
+

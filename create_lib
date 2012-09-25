@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Easy way of creating a static library from some source files
+# 
+# Usage: create_lib [path to sources] [libname (optional)]
+
+CWD="`pwd`";
+
+if [ $# -gt 1 ]; then
+	LIB=$2
+else
+	LIB=$CWD"/lib"$1".a"
+fi
+
+cd $1
+rm *.o
+g++ *.cc -c
+ar rsv $LIB *.o
+ranlib $LIB
+rm *.o
+cd $CWD

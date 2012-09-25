@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Auto suspend and wake-up script
+#
+# Puts the computer on standby and automatically wakes it up at specified time
+#
+# Written by Romke van der Meulen <redge.online@gmail.com>
+#
+# Takes a 24hour time HH:MM as its argument
+# Example:
+# suspend_untill 9:30
+# suspend_untill 18:45
+
+# ------------------------------------------------------
+# Argument check
+if [ $# -lt 1 ]; then
+	echo "Usage: suspend_untill HH:MM"
+fi
+
+# Check whether specified time today or tomorrow
+DESIRED=$((`date +%s -d "$1"`+7200))
+NOW=$((`date +%s`))
+if [ $DESIRED -lt $NOW ]; then
+	DESIRED=$((DESIRED + 24*60*60))
+fi
+
+# Kill rtcwake if already running
+sudo killall rtcwake
+
+# Set RTC wakeup time
+sudo rtcwake -t $DESIRED -m on &
+
+# give some time to cancel if needed
+sleep 2
+
+# feedback
+echo "Suspending..."
+
+# give rtcwake some time to make its stuff
+sleep 2
+
+# then suspend
+sudo pm-suspend
+
+# Wake up with monitor disabled
+xset dpms force off
+
+# Kill rtcwake if still running
+sudo killall rtcwake
+
+# Any commands you want to launch after wakeup can be placed here
+# Remember: sudo may have expired by now
+clear
+echo "Good morning!"
+/home/romke/bin/dow.actions.sh &
