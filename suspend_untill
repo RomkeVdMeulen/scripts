@@ -30,13 +30,11 @@ sudo killall rtcwake
 # Set RTC wakeup time
 sudo rtcwake -t $DESIRED -m on &
 
-# give some time to cancel if needed
-sleep 2
 
 # feedback
 echo "Suspending..."
 
-# give rtcwake some time to make its stuff
+# give some time to cancel if needed
 sleep 2
 
 # then suspend
@@ -52,4 +50,3 @@ sudo killall rtcwake
 # Remember: sudo may have expired by now
 clear
 echo "Good morning!"
-/home/romke/bin/dow.actions.sh &
