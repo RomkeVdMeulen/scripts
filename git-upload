@@ -13,7 +13,7 @@ if [ $# -lt 1 ] || [ $# -gt 2 ]; then
 fi
 
 # Define remote directory
-HOST=redgeonl@redgeonline.net
+HOST=YOURHOSTHERE
 REMOTEDIR=www/repo
 
 # If no second argument given, the name of the uploaded repo is
